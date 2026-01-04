@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Snowball - Simulateur d'Intérêts Composés</title>
+    <meta name="description"
+        content="Simulateur d'intérêts composés. Visualisez la puissance de l'effet boule de neige sur votre épargne et vos investissements.">
+    <meta name="keywords"
+        content="simulateur intérêts composés, effet boule de neige, épargne, investissement, calcul patrimoine">
+    <meta name="author" content="Hamza DJOUDI">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Snowball - Simulateur d'Intérêts Composés">
+    <meta property="og:description" content="Visualisez la puissance de l'effet boule de neige sur votre épargne.">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>❄️</text></svg>">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap');
+
+        body {
+            background-color: #0b0c15;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: #e2e8f0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 10px;
+        }
+
+        /* Input Number Styling */
+        .input-precision {
+            background: transparent;
+            text-align: right;
+            border: none;
+            font-weight: 700;
+            font-size: 1.5rem;
+            line-height: 1.5rem;
+            color: white;
+            padding-right: 0.5rem;
+            outline: none;
+        }
+
+        /* Input Range Styling (Years/Rate) */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+            height: 30px;
+            cursor: pointer;
+            position: relative;
+            z-index: 20;
+        }
+
+        input[type=range]::-webkit-slider-runnable-track {
+            background: #282b3c;
+            height: 4px;
+            border-radius: 2px;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 24px;
+            width: 24px;
+            border-radius: 50%;
+            background: #fff;
+            border: 4px solid #6366f1;
+            box-shadow: 0 0 0 5px rgba(99, 102, 241, 0.2);
+            margin-top: -10px;
+            transition: all 0.1s;
+        }
+
+
+        .control-card {
+            background: #151725;
+            border: 1px solid #282b3c;
+            border-radius: 16px;
+            transition: all 0.2s;
+            overflow: hidden;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+
+<body class="h-screen flex flex-col md:flex-row overflow-hidden">
+
+    <!-- LEFT PANEL: COCKPIT (Scrollable Controls) -->
+    <aside
+        class="w-full md:w-[450px] bg-[#0f101b] border-t md:border-t-0 md:border-r border-[#1e293b] flex flex-col md:order-1 z-20 shadow-2xl">
+
+        <div class="p-6 md:p-8 overflow-y-auto space-y-8 h-full">
+
+            <!-- Header / Assistant -->
+            <div>
+                <h3 class="text-sm font-bold text-indigo-400 uppercase tracking-wider mb-4">Initialisation</h3>
+                <div class="bg-indigo-600/10 p-4 rounded-2xl border border-indigo-500/20 flex gap-3 items-center">
+                    <div class="flex-1">
+                        <label class="text-xs text-indigo-300 block mb-1">Salaire Net Mensuel</label>
+                        <input type="number" id="salaryInput" value="2000"
+                            class="bg-transparent text-white font-bold text-lg outline-none w-full placeholder-indigo-500/50"
+                            placeholder="2000" oninput="update()">
+                    </div>
+                    <button onclick="applyBudget()"
+                        class="bg-indigo-600 hover:bg-indigo-500 text-white p-3 rounded-xl transition shadow-lg shadow-indigo-500/20 active:scale-95">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Primary Controls (Number Inputs) -->
+            <div class="space-y-6">
+                <h3 class="text-sm font-bold text-slate-500 uppercase tracking-wider">Montants (Précision)</h3>
+
+                <!-- Control: Initial -->
+                <div class="control-card p-4">
+                    <p class="text-xs text-slate-400 mb-1">Capital de départ</p>
+                    <div class="flex justify-between items-center mt-2">
+                        <div class="flex gap-2">
+                            <button onclick="changeValue('initial', -100)"
+                                class="w-8 h-8 bg-slate-700 hover:bg-slate-600 rounded-full text-xl font-bold active:scale-95 transition">-</button>
+                            <button onclick="changeValue('initial', 100)"
+                                class="w-8 h-8 bg-slate-700 hover:bg-slate-600 rounded-full text-xl font-bold active:scale-95 transition">+</button>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="number" id="initial" min="0" max="50000" step="100" value="500"
+                                class="input-precision w-24" oninput="update()">
+                            <span class="text-xl font-bold text-slate-500">€</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Control: Monthly -->
+                <div class="control-card p-4 border-indigo-500/30 shadow-[0_0_20px_rgba(99,102,241,0.05)]">
+                    <p class="text-xs text-indigo-300 mb-1 font-bold">Épargne Mensuelle</p>
+                    <div class="flex justify-between items-center mt-2">
+                        <div class="flex gap-2">
+                            <button onclick="changeValue('monthly', -50)"
+                                class="w-8 h-8 bg-indigo-700 hover:bg-indigo-600 rounded-full text-xl font-bold active:scale-95 transition">-</button>
+                            <button onclick="changeValue('monthly', 50)"
+                                class="w-8 h-8 bg-indigo-700 hover:bg-indigo-600 rounded-full text-xl font-bold active:scale-95 transition">+</button>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="number" id="monthly" min="0" max="3000" step="50" value="200"
+                                class="input-precision w-24" oninput="update()">
+                            <span class="text-xl font-bold text-indigo-400">€</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sliders for non-monetary values -->
+            <div class="space-y-6">
+                <h3 class="text-sm font-bold text-slate-500 uppercase tracking-wider">Durée / Taux (Sensations)</h3>
+
+                <!-- Control: Years (Slider) -->
+                <div class="control-card p-4">
+                    <p class="text-xs text-slate-400 mb-4">Durée d'investissement</p>
+                    <div class="flex justify-between items-center mb-2">
+                        <p class="text-xl font-bold text-white"><span id="txt-years">20</span> ans</p>
+                        <span class="text-slate-500">Max 40 ans</span>
+                    </div>
+                    <input type="range" id="years" min="1" max="40" step="1" value="20" oninput="update()">
+                </div>
+
+                <!-- Control: Rate (Slider + Presets) -->
+                <div class="bg-[#151725] rounded-2xl p-4 border border-[#282b3c]">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-sm text-slate-300">Rendement Annuel</span>
+                        <span class="text-amber-400 font-bold bg-amber-900/20 px-2 py-1 rounded"
+                            id="txt-rate">10%</span>
+                    </div>
+                    <input type="range" id="rate" min="0" max="15" step="0.5" value="10" class="w-full"
+                        oninput="update()">
+
+                    <div class="flex justify-between gap-2 mt-4">
+                        <button onclick="setRate(3)"
+                            class="flex-1 py-2 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-400 rounded-lg transition">Livret</button>
+                        <button onclick="setRate(7)"
+                            class="flex-1 py-2 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-400 rounded-lg transition">Monde</button>
+                        <button onclick="setRate(10)"
+                            class="flex-1 py-2 text-xs font-bold bg-amber-900/20 text-amber-500 border border-amber-500/20 rounded-lg transition">S&P
+                            500</button>
+                    </div>
+                </div>
+
+                <!-- Toggles -->
+                <div class="grid grid-cols-2 gap-3">
+                    <button id="btn-inflation" onclick="toggleReality('inflation')"
+                        class="p-3 control-card flex flex-col items-start gap-2">
+                        <div class="w-full flex justify-between">
+                            <span class="text-xs text-slate-400">Inflation</span>
+                            <div class="w-2 h-2 rounded-full bg-slate-700" id="dot-inflation"></div>
+                        </div>
+                        <span class="text-xs text-slate-500">2% / an</span>
+                    </button>
+
+                    <button id="btn-tax" onclick="toggleReality('tax')"
+                        class="p-3 control-card flex flex-col items-start gap-2">
+                        <div class="w-full flex justify-between">
+                            <span class="text-xs text-slate-400">Impôts</span>
+                            <div class="w-2 h-2 rounded-full bg-slate-700" id="dot-tax"></div>
+                        </div>
+                        <span class="text-xs text-slate-500">Flat Tax 30%</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Bottom padding for mobile -->
+            <div class="h-10 md:hidden"></div>
+        </div>
+    </aside>
+
+    <!-- RIGHT PANEL: VISUALIZATION (Sticky on Desktop, Top on Mobile) -->
+    <section class="flex-1 flex flex-col relative md:order-2 bg-[#0b0c15]">
+
+        <!-- Mobile Header (Sticky) -->
+        <div class="md:hidden glass-header p-4 z-30 sticky top-0 flex justify-between items-center">
+            <div>
+                <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Total Projeté</p>
+                <h1 class="text-2xl font-bold text-white tracking-tight" id="mob-total">0 €</h1>
+            </div>
+            <div class="text-right">
+                <p class="text-xs text-emerald-400 font-bold bg-emerald-500/10 px-2 py-1 rounded-full border border-emerald-500/20"
+                    id="mob-gains">+0 €</p>
+            </div>
+        </div>
+
+        <!-- Chart Container -->
+        <div class="flex-1 p-4 md:p-8 flex flex-col justify-center relative">
+
+            <!-- Desktop Title (Hidden on Mobile) -->
+            <div class="hidden md:block absolute top-8 left-8">
+                <div class="flex items-center gap-3 mb-2">
+                    <div
+                        class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-indigo-500/20">
+                        ❄️</div>
+                    <h1 class="text-xl font-bold tracking-tight">Snowball</h1>
+                </div>
+            </div>
+
+            <!-- Main Stats (Desktop) -->
+            <div class="hidden md:flex flex-col items-center mb-8 text-center animate-fade-in">
+                <p class="text-sm text-slate-400 font-medium mb-2">Capital Final Estimé</p>
+                <h2 class="text-6xl font-extrabold gradient-text tracking-tight mb-4" id="desk-total">0 €</h2>
+                <div class="flex items-center gap-4 text-sm">
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-slate-600"></span>
+                        <span class="text-slate-400">Effort: <span id="desk-invested"
+                                class="text-white font-mono">0€</span></span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.4)]"></span>
+                        <span class="text-emerald-400 font-medium">Gains: <span id="desk-gains"
+                                class="font-mono">+0€</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chart -->
+            <div class="w-full h-[250px] md:h-[400px] relative">
+                <canvas id="snowballChart"></canvas>
+            </div>
+
+            <!-- Mobile Stats Detail (Below Chart) -->
+            <div class="md:hidden grid grid-cols-2 gap-3 mt-4">
+                <div class="bg-[#151725] p-3 rounded-xl border border-slate-800">
+                    <p class="text-[10px] text-slate-500 uppercase">Votre Effort</p>
+                    <p class="text-lg font-bold text-slate-300" id="mob-invested-detail">0 €</p>
+                </div>
+                <div class="bg-emerald-900/10 p-3 rounded-xl border border-emerald-500/20">
+                    <p class="text-[10px] text-emerald-500 uppercase">Intérêts</p>
+                    <p class="text-lg font-bold text-emerald-400" id="mob-gains-detail">0 €</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // --- UTILS ---
+        function formatMoney(amount) {
+            return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(amount);
+        }
+
+        // --- CORE UI LOGIC ---
+
+        function changeValue(id, delta) {
+            const input = document.getElementById(id);
+            let currentValue = parseInt(input.value) || 0;
+            const step = parseInt(input.step) || 1;
+            const newValue = currentValue + (delta > 0 ? step : -step) * Math.abs(delta / step);
+
+            // Respect min/max bounds
+            const min = parseInt(input.min) || 0;
+            const max = parseInt(input.max) || Infinity;
+
+            input.value = Math.max(min, Math.min(max, newValue));
+            update();
+        }
+
+        function setRate(r) {
+            document.getElementById('rate').value = r;
+            update();
+        }
+
+        function toggleReality(type) {
+            if (type === 'inflation') state.useInflation = !state.useInflation;
+            if (type === 'tax') state.useTax = !state.useTax;
+
+            // UI Toggle Logic
+            const dot = document.getElementById(`dot-${type}`);
+            const btn = document.getElementById(`btn-${type}`);
+
+            if (state[type === 'inflation' ? 'useInflation' : 'useTax']) {
+                dot.className = "w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_theme(colors.emerald.400)]";
+                btn.className = "p-3 control-card border-emerald-500/50";
+            } else {
+                dot.className = "w-2 h-2 rounded-full bg-slate-700";
+                btn.className = "p-3 control-card";
+            }
+            update();
+        }
+
+        function applyBudget() {
+            const salary = parseInt(document.getElementById('salaryInput').value) || 0;
+            const recommended = Math.round(salary * 0.1);
+            document.getElementById('monthly').value = recommended;
+            update();
+        }
+
+        // --- APP STATE & LOGIC ---
+        let state = {
+            useInflation: false,
+            useTax: false
+        };
+
+        // --- CHART CONFIG ---
+        const ctx = document.getElementById('snowballChart').getContext('2d');
+        const gradientFill = ctx.createLinearGradient(0, 0, 0, 400);
+        gradientFill.addColorStop(0, 'rgba(99, 102, 241, 0.5)');
+        gradientFill.addColorStop(1, 'rgba(99, 102, 241, 0.0)');
+
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: 'Patrimoine',
+                        data: [],
+                        borderColor: '#818cf8',
+                        backgroundColor: gradientFill,
+                        borderWidth: 3,
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
+                        fill: true,
+                        tension: 0.4,
+                        order: 1
+                    },
+                    {
+                        label: 'Effort (Mise)',
+                        data: [],
+                        borderColor: '#475569',
+                        backgroundColor: 'transparent',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        pointRadius: 0,
+                        tension: 0.4,
+                        order: 2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#0f101b',
+                        titleColor: '#fff',
+                        bodyColor: '#cbd5e1',
+                        borderColor: '#282b3c',
+                        borderWidth: 1,
+                        padding: 12,
+                        displayColors: false,
+                        callbacks: {
+                            label: function (context) {
+                                let label = context.dataset.label || '';
+                                if (label) label += ': ';
+                                if (context.parsed.y !== null) label += formatMoney(context.parsed.y);
+                                return label;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: { grid: { color: '#1e293b', display: false }, ticks: { color: '#64748b', font: { family: 'Plus Jakarta Sans' } } },
+                    y: { grid: { color: '#1e293b', borderDash: [5, 5] }, ticks: { color: '#64748b', callback: function (value) { return value >= 1000 ? value / 1000 + 'k' : value; } } }
+                }
+            }
+        });
+
+        // --- UPDATE FUNCTION (Main Loop) ---
+        function update() {
+            // Get inputs (Ensure they are parsed as numbers)
+            const initial = parseInt(document.getElementById('initial').value) || 0;
+            const monthly = parseInt(document.getElementById('monthly').value) || 0;
+            const years = parseInt(document.getElementById('years').value);
+            const rate = parseFloat(document.getElementById('rate').value);
+
+            // Update UI Texts (sliders)
+            document.getElementById('txt-years').innerText = years;
+            document.getElementById('txt-rate').innerText = rate + "%";
+
+            // Calculation
+            const labels = [];
+            const dataFinal = [];
+            const dataInvested = [];
+
+            let currentTotal = initial;
+            let currentInvested = initial;
+            const monthlyRate = rate / 100 / 12;
+            const inflationRate = 0.02;
+            const taxRate = 0.30;
+
+            labels.push('0');
+            dataFinal.push(initial);
+            dataInvested.push(initial);
+
+            for (let y = 1; y <= years; y++) {
+                labels.push(y);
+
+                for (let m = 0; m < 12; m++) {
+                    currentTotal += monthly;
+                    currentTotal *= (1 + monthlyRate);
+                    currentInvested += monthly;
+                }
+
+                let adjustedValue = currentTotal;
+
+                if (state.useTax) {
+                    const gains = Math.max(0, adjustedValue - currentInvested);
+                    const taxAmount = gains * taxRate;
+                    adjustedValue = adjustedValue - taxAmount;
+                }
+
+                if (state.useInflation) {
+                    adjustedValue = adjustedValue / Math.pow(1 + inflationRate, y);
+                }
+
+                dataFinal.push(adjustedValue);
+                dataInvested.push(currentInvested);
+            }
+
+            const finalAdjusted = dataFinal[dataFinal.length - 1];
+            const finalInvested = currentInvested;
+            const marketGains = finalAdjusted - finalInvested;
+
+            // --- UI Output Updates ---
+
+            // Desktop
+            document.getElementById('desk-total').innerText = formatMoney(finalAdjusted);
+            document.getElementById('desk-invested').innerText = formatMoney(finalInvested);
+            document.getElementById('desk-gains').innerText = (marketGains > 0 ? "+" : "") + formatMoney(marketGains);
+
+            // Mobile Header
+            document.getElementById('mob-total').innerText = formatMoney(finalAdjusted);
+            document.getElementById('mob-gains').innerText = (marketGains > 0 ? "+" : "") + formatMoney(marketGains);
+
+            // Mobile Detail
+            document.getElementById('mob-invested-detail').innerText = formatMoney(finalInvested);
+            document.getElementById('mob-gains-detail').innerText = formatMoney(marketGains);
+
+            // Chart Update
+            chart.data.labels = labels;
+            chart.data.datasets[0].data = dataFinal;
+            chart.data.datasets[1].data = dataInvested;
+            chart.update();
+        }
+
+        // Init
+        window.onload = function () {
+            update();
+        };
+
+    </script>
+</body>
+
+</html>
