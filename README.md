@@ -38,4 +38,4 @@ npx serve
 
 ## 📄 Licence
 
-MIT
+© 2025 Hamza DJOUDI - Tous droits réservés.
