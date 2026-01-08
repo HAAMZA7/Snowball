@@ -1,10 +1,8 @@
 # ❄️ Snowball - Simulateur d'Intérêts Composés
 
-Visualisez la puissance de l'effet boule de neige sur votre épargne et vos investissements.
+> Visualisez la puissance de l'effet boule de neige sur votre épargne et vos investissements.
 
-## 🚀 Démo
-
-[snowball-sim.vercel.app](https://snowball-sim.vercel.app)
+🔗 **[Voir la démo](https://snowball-sim.vercel.app/)**
 
 ## ✨ Fonctionnalités
 
@@ -12,30 +10,31 @@ Visualisez la puissance de l'effet boule de neige sur votre épargne et vos inve
 - 💰 Calcul des intérêts composés en temps réel
 - 🎚️ Sliders pour durée et taux de rendement
 - 📱 100% responsive (mobile-first)
-- 🎨 Design moderne dark mode
+- 🌙 Mode sombre / clair
 - ⚡ Presets de taux (Livret, Monde, S&P 500)
 - 📈 Options inflation et impôts (Flat Tax 30%)
 
-## 🛠️ Stack
+## 🛠️ Stack Technique
 
 - HTML5
 - TailwindCSS (CDN)
 - Chart.js
 - JavaScript Vanilla
 
-## 📦 Installation
-
-Aucune installation nécessaire ! C'est un site statique.
+## 🚀 Installation
 
 ```bash
+# Cloner le repo
+git clone https://github.com/HAAMZA7/Snowball.git
+
 # Ouvrir localement
 npx serve
 ```
 
-## 👤 Auteur
-
-**Hamza DJOUDI** - [djoudi.dev](https://djoudi.dev)
-
 ## 📄 Licence
 
 © 2025 Hamza DJOUDI - Tous droits réservés.
+
+---
+
+Made with ❤️ by [Hamza DJOUDI](https://djoudi.dev)
