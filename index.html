@@ -259,7 +259,9 @@
 
         .btn-primary,
         .btn-step,
-        .btn-preset {
+        .btn-preset,
+        .btn-secondary,
+        .btn-ghost {
             border: none;
             cursor: pointer;
             font: inherit;
@@ -281,6 +283,26 @@
             border-radius: 10px;
             background: rgba(255, 255, 255, 0.05);
             color: var(--text-main);
+        }
+
+        .btn-secondary,
+        .btn-ghost {
+            padding: 11px 14px;
+            border-radius: 14px;
+            font-size: 0.82rem;
+            font-weight: 800;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text-main);
+            border: 1px solid rgba(148, 163, 184, 0.16);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-soft);
+            border: 1px dashed rgba(148, 163, 184, 0.18);
         }
 
         .stepper {
@@ -411,6 +433,127 @@
             display: grid;
             gap: 18px;
         }
+
+        .app-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .inline-input {
+            width: 100%;
+            border: 1px solid rgba(148, 163, 184, 0.16);
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-main);
+            padding: 12px 14px;
+            border-radius: 14px;
+            outline: none;
+            font: inherit;
+            font-weight: 600;
+        }
+
+        .saved-list,
+        .comparison-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .saved-card,
+        .comparison-card {
+            background: var(--bg-panel);
+            border: 1px solid rgba(148, 163, 184, 0.12);
+            border-radius: 18px;
+            padding: 16px 18px;
+        }
+
+        .saved-card.is-selected {
+            border-color: rgba(89, 210, 197, 0.36);
+            box-shadow: inset 0 0 0 1px rgba(89, 210, 197, 0.08);
+        }
+
+        .saved-card-head,
+        .comparison-card-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: start;
+        }
+
+        .saved-card h3,
+        .comparison-card h3 {
+            margin: 0;
+            font-size: 0.98rem;
+        }
+
+        .saved-meta,
+        .comparison-card p,
+        .empty-state p {
+            margin: 6px 0 0;
+            color: var(--text-soft);
+            font-size: 0.84rem;
+            line-height: 1.6;
+        }
+
+        .saved-kpi,
+        .comparison-kpi {
+            margin-top: 14px;
+            display: grid;
+            gap: 8px;
+        }
+
+        .saved-kpi span,
+        .saved-kpi strong,
+        .comparison-kpi strong {
+            display: block;
+        }
+
+        .saved-kpi span,
+        .comparison-kpi span {
+            color: var(--text-faint);
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 8px;
+        }
+
+        .saved-kpi strong,
+        .comparison-kpi strong {
+            font-size: 1.2rem;
+            letter-spacing: -0.03em;
+        }
+
+        .card-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 14px;
+        }
+
+        .mini-button {
+            border: 1px solid rgba(148, 163, 184, 0.14);
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-main);
+            border-radius: 999px;
+            padding: 8px 11px;
+            font: inherit;
+            font-size: 0.74rem;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .empty-state {
+            padding: 18px;
+            border-radius: 18px;
+            border: 1px dashed rgba(148, 163, 184, 0.16);
+            color: var(--text-soft);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .comparison-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
 
         .hero-grid {
             grid-template-columns: 1.1fr 0.9fr;
@@ -576,7 +719,8 @@
             .workspace,
             .hero-grid,
             .summary-grid,
-            .insight-grid {
+            .insight-grid,
+            .comparison-grid {
                 grid-template-columns: 1fr;
             }
 
@@ -752,6 +896,37 @@
                         </button>
                     </div>
                 </section>
+
+                <section class="glass-card panel section-block">
+                    <div class="section-head">
+                        <div>
+                            <h2>Scénarios</h2>
+                            <p>Transforme Snowball en outil de travail : sauvegarde, recharge et compare plusieurs hypothèses.</p>
+                        </div>
+                        <span class="helper-pill">Webapp</span>
+                    </div>
+
+                    <div class="field-card section-block">
+                        <div>
+                            <label for="scenarioName">Nom du scénario</label>
+                            <p class="field-copy">Utilise un nom explicite pour comparer plusieurs trajectoires sans te perdre.</p>
+                        </div>
+                        <input id="scenarioName" class="inline-input" type="text" value="Mon scénario"
+                            placeholder="Ex. Base prudente 2035">
+                        <div class="app-actions">
+                            <button class="btn-primary" onclick="saveCurrentScenario()">Sauvegarder</button>
+                            <button class="btn-secondary" onclick="shareCurrentScenario()">Copier le lien</button>
+                            <button class="btn-ghost" onclick="resetScenario()">Réinitialiser</button>
+                        </div>
+                    </div>
+
+                    <div id="saved-scenarios" class="saved-list">
+                        <div class="empty-state">
+                            <strong>Aucun scénario sauvegardé.</strong>
+                            <p>Enregistre ton scénario actuel pour construire une vraie bibliothèque de cas.</p>
+                        </div>
+                    </div>
+                </section>
             </aside>
 
             <main class="results-column">
@@ -812,6 +987,57 @@
                         Active l'inflation et les impôts si tu veux une lecture moins flatteuse et plus proche d'un
                         scénario prudent.
                     </section>
+                </section>
+
+                <section class="glass-card panel section-block">
+                    <div class="section-head">
+                        <div>
+                            <h3 class="panel-title">Comparaison rapide</h3>
+                            <p class="panel-subtitle">Mesure immédiatement l'écart entre le scénario actif et un scénario sauvegardé.</p>
+                        </div>
+                        <span class="helper-pill" id="comparison-badge">Aucune base</span>
+                    </div>
+
+                    <div id="comparison-grid" class="comparison-grid">
+                        <article class="comparison-card">
+                            <div class="comparison-card-head">
+                                <div>
+                                    <h3>Capital final</h3>
+                                    <p>Écart entre la projection active et la base de comparaison sélectionnée.</p>
+                                </div>
+                            </div>
+                            <div class="comparison-kpi">
+                                <span>Delta</span>
+                                <strong id="comparison-total" class="text-soft">Choisis un scénario</strong>
+                            </div>
+                        </article>
+
+                        <article class="comparison-card">
+                            <div class="comparison-card-head">
+                                <div>
+                                    <h3>Effort investi</h3>
+                                    <p>Permet de distinguer une meilleure projection d'un simple apport plus élevé.</p>
+                                </div>
+                            </div>
+                            <div class="comparison-kpi">
+                                <span>Delta</span>
+                                <strong id="comparison-invested" class="text-soft">Choisis un scénario</strong>
+                            </div>
+                        </article>
+
+                        <article class="comparison-card">
+                            <div class="comparison-card-head">
+                                <div>
+                                    <h3>Lecture</h3>
+                                    <p>Explique d'un coup d'oeil pourquoi le scénario actif est plus fort ou plus faible.</p>
+                                </div>
+                            </div>
+                            <div class="comparison-kpi">
+                                <span>Synthèse</span>
+                                <strong id="comparison-copy" class="text-soft">Sauvegarde puis compare un scénario pour activer ce bloc.</strong>
+                            </div>
+                        </article>
+                    </div>
                 </section>
 
                 <section class="glass-card chart-panel">
@@ -927,6 +1153,12 @@
         const REGRET_YEARS = 10;
         const INFLATION_RATE = 0.02;
         const TAX_RATE = 0.30;
+        const STORAGE_KEY = 'snowball-scenarios-v2';
+        const DEFAULT_SCENARIO_NAME = 'Mon scénario';
+
+        let savedScenarios = [];
+        let comparisonScenarioId = null;
+        let lastScenarioState = null;
 
         function changeValue(id, delta) {
             const input = document.getElementById(id);
@@ -983,8 +1215,103 @@
         function setMetricValue(id, amount, positiveClass, negativeClass) {
             const element = document.getElementById(id);
             element.innerText = formatSignedMoney(amount);
+            element.classList.remove('text-soft');
             element.classList.toggle(positiveClass, amount >= 0);
             element.classList.toggle(negativeClass, amount < 0);
+        }
+
+        function normalizeConfig(rawConfig = {}) {
+            return {
+                salary: Math.max(0, Number(rawConfig.salary) || 0),
+                initial: Math.max(0, Number(rawConfig.initial) || 0),
+                monthly: Math.max(0, Number(rawConfig.monthly) || 0),
+                years: Math.max(1, Number(rawConfig.years) || 1),
+                calcMode: rawConfig.calcMode === 'sp500' ? 'sp500' : 'stable',
+                rate: Math.max(0, Number(rawConfig.rate) || 0),
+                startYear: Math.min(SP500_MAX_YEAR, Math.max(SP500_MIN_YEAR, Number(rawConfig.startYear) || 1990)),
+                reality: {
+                    inflation: Boolean(rawConfig.reality?.inflation),
+                    tax: Boolean(rawConfig.reality?.tax)
+                }
+            };
+        }
+
+        function getCurrentConfig() {
+            return normalizeConfig({
+                salary: document.getElementById('salaryInput').value,
+                initial: document.getElementById('initial').value,
+                monthly: document.getElementById('monthly').value,
+                years: document.getElementById('years').value,
+                calcMode: document.getElementById('calcMode').value,
+                rate: document.getElementById('rate').value,
+                startYear: document.getElementById('startYear').value,
+                reality
+            });
+        }
+
+        function applyScenarioConfig(config) {
+            const normalized = normalizeConfig(config);
+            document.getElementById('salaryInput').value = normalized.salary;
+            document.getElementById('initial').value = normalized.initial;
+            document.getElementById('monthly').value = normalized.monthly;
+            document.getElementById('years').value = normalized.years;
+            document.getElementById('calcMode').value = normalized.calcMode;
+            document.getElementById('rate').value = normalized.rate;
+            document.getElementById('startYear').value = normalized.startYear;
+            reality = { ...normalized.reality };
+            syncRealityToggles();
+        }
+
+        function encodeScenarioState(config) {
+            const json = JSON.stringify(normalizeConfig(config));
+            const bytes = new TextEncoder().encode(json);
+            let binary = '';
+            bytes.forEach((byte) => {
+                binary += String.fromCharCode(byte);
+            });
+
+            return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        }
+
+        function decodeScenarioState(encoded) {
+            if (!encoded) {
+                return null;
+            }
+
+            try {
+                const padded = encoded.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(encoded.length / 4) * 4, '=');
+                const binary = atob(padded);
+                const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+                return normalizeConfig(JSON.parse(new TextDecoder().decode(bytes)));
+            } catch {
+                return null;
+            }
+        }
+
+        function syncUrlState(config) {
+            const encoded = encodeScenarioState(config);
+            history.replaceState(null, '', `${location.pathname}${location.search}#${encoded}`);
+        }
+
+        function persistSavedScenarios() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(savedScenarios));
+        }
+
+        function getSavedScenariosSorted() {
+            return [...savedScenarios].sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+        }
+
+        function getScenarioMeta(config) {
+            return config.calcMode === 'sp500'
+                ? `Backtest S&P 500 · départ ${config.startYear} · ${formatYearCount(config.years)}`
+                : `Taux constant ${formatPercent(config.rate)} % · ${formatYearCount(config.years)}`;
+        }
+
+        function getScenarioName() {
+            const input = document.getElementById('scenarioName');
+            const name = input.value.trim() || `${DEFAULT_SCENARIO_NAME} ${savedScenarios.length + 1}`;
+            input.value = name;
+            return name;
         }
 
         function clampYearsForMode(requestedYears, calcMode, startYear) {
@@ -1082,6 +1409,281 @@
             return `${modeCopy}. ${describeReality(activeReality)}.`;
         }
 
+        function computeScenarioBundle(rawConfig) {
+            const config = normalizeConfig(rawConfig);
+            const { years, maxYears } = clampYearsForMode(config.years, config.calcMode, config.startYear);
+            const normalizedConfig = {
+                ...config,
+                years
+            };
+            const scenario = simulateScenario({
+                initial: normalizedConfig.initial,
+                monthly: normalizedConfig.monthly,
+                years: normalizedConfig.years,
+                calcMode: normalizedConfig.calcMode,
+                rate: normalizedConfig.rate,
+                startYear: normalizedConfig.startYear,
+                activeReality: normalizedConfig.reality
+            });
+            const totalGains = scenario.finalValue - scenario.totalInvested;
+
+            return {
+                config: normalizedConfig,
+                maxYears,
+                scenario,
+                totalGains,
+                scenarioCopy: getScenarioCopy({
+                    calcMode: normalizedConfig.calcMode,
+                    years: normalizedConfig.years,
+                    rate: normalizedConfig.rate,
+                    startYear: normalizedConfig.startYear,
+                    activeReality: normalizedConfig.reality
+                })
+            };
+        }
+
+        function getComparisonCopy(activeBundle, baselineBundle) {
+            const totalDelta = activeBundle.scenario.finalValue - baselineBundle.scenario.finalValue;
+            const investedDelta = activeBundle.scenario.totalInvested - baselineBundle.scenario.totalInvested;
+
+            if (totalDelta === 0 && investedDelta === 0) {
+                return "Le scénario actif est identique à la base sauvegardée : même effort, même résultat, même hypothèse.";
+            }
+
+            if (totalDelta >= 0 && investedDelta <= 0) {
+                return "Le scénario actif délivre un meilleur résultat sans demander plus d'effort investi.";
+            }
+
+            if (totalDelta >= 0 && investedDelta > 0) {
+                return "Le scénario actif gagne plus, mais une partie de l'écart vient aussi d'un effort investi supérieur.";
+            }
+
+            if (totalDelta < 0 && investedDelta < 0) {
+                return "Le scénario actif investit moins et termine logiquement plus bas que la base.";
+            }
+
+            return "Le scénario actif investit davantage mais termine plus bas : l'hypothèse retenue est moins efficace que la base.";
+        }
+
+        function resetComparisonView() {
+            document.getElementById('comparison-badge').innerText = 'Aucune base';
+            document.getElementById('comparison-total').innerText = 'Choisis un scénario';
+            document.getElementById('comparison-invested').innerText = 'Choisis un scénario';
+            document.getElementById('comparison-copy').innerText = 'Sauvegarde puis compare un scénario pour activer ce bloc.';
+            ['comparison-total', 'comparison-invested', 'comparison-copy'].forEach((id) => {
+                const element = document.getElementById(id);
+                element.classList.remove('text-positive', 'text-warning');
+                element.classList.add('text-soft');
+            });
+        }
+
+        function renderComparison() {
+            if (!comparisonScenarioId || !lastScenarioState) {
+                resetComparisonView();
+                return;
+            }
+
+            const baseline = savedScenarios.find((scenario) => scenario.id === comparisonScenarioId);
+            if (!baseline) {
+                resetComparisonView();
+                return;
+            }
+
+            const baselineBundle = computeScenarioBundle(baseline.config);
+            const totalDelta = lastScenarioState.scenario.finalValue - baselineBundle.scenario.finalValue;
+            const investedDelta = lastScenarioState.scenario.totalInvested - baselineBundle.scenario.totalInvested;
+
+            document.getElementById('comparison-badge').innerText = `Base : ${baseline.name}`;
+            setMetricValue('comparison-total', totalDelta, 'text-positive', 'text-warning');
+            setMetricValue('comparison-invested', investedDelta, 'text-positive', 'text-warning');
+            const comparisonCopy = document.getElementById('comparison-copy');
+            comparisonCopy.innerText = getComparisonCopy(lastScenarioState, baselineBundle);
+            comparisonCopy.classList.remove('text-soft', 'text-warning');
+            comparisonCopy.classList.add(totalDelta >= 0 ? 'text-positive' : 'text-warning');
+        }
+
+        function renderSavedScenarios() {
+            const container = document.getElementById('saved-scenarios');
+
+            if (!savedScenarios.length) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <strong>Aucun scénario sauvegardé.</strong>
+                        <p>Enregistre ton scénario actuel pour construire une vraie bibliothèque de cas.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = getSavedScenariosSorted().map((savedScenario) => `
+                <article class="saved-card ${comparisonScenarioId === savedScenario.id ? 'is-selected' : ''}">
+                    <div class="saved-card-head">
+                        <div>
+                            <h3>${savedScenario.name}</h3>
+                            <p class="saved-meta">${getScenarioMeta(savedScenario.config)}</p>
+                        </div>
+                        <span class="helper-pill">${savedScenario.config.monthly} €/mois</span>
+                    </div>
+                    <div class="saved-kpi">
+                        <span class="mini-label">Capital final</span>
+                        <strong>${formatMoney(savedScenario.snapshot.finalValue)}</strong>
+                        <p class="saved-meta">Investi : ${formatMoney(savedScenario.snapshot.totalInvested)}</p>
+                    </div>
+                    <div class="card-actions">
+                        <button class="mini-button" data-action="load" data-id="${savedScenario.id}">Charger</button>
+                        <button class="mini-button" data-action="compare" data-id="${savedScenario.id}">${comparisonScenarioId === savedScenario.id ? 'Retirer la base' : 'Comparer'}</button>
+                        <button class="mini-button" data-action="delete" data-id="${savedScenario.id}">Supprimer</button>
+                    </div>
+                </article>
+            `).join('');
+
+            container.querySelectorAll('button[data-action]').forEach((button) => {
+                button.addEventListener('click', () => {
+                    const { action, id } = button.dataset;
+
+                    if (action === 'load') {
+                        loadScenario(id);
+                    } else if (action === 'compare') {
+                        comparisonScenarioId = comparisonScenarioId === id ? null : id;
+                        renderSavedScenarios();
+                        renderComparison();
+                    } else if (action === 'delete') {
+                        deleteScenario(id);
+                    }
+                });
+            });
+        }
+
+        function saveCurrentScenario() {
+            const name = getScenarioName();
+            const bundle = computeScenarioBundle(getCurrentConfig());
+            const existing = savedScenarios.find((scenario) => scenario.name.toLowerCase() === name.toLowerCase());
+            const timestamp = new Date().toISOString();
+            const record = {
+                id: existing?.id || `scenario-${Date.now()}`,
+                name,
+                updatedAt: timestamp,
+                createdAt: existing?.createdAt || timestamp,
+                config: bundle.config,
+                snapshot: {
+                    finalValue: bundle.scenario.finalValue,
+                    totalInvested: bundle.scenario.totalInvested,
+                    totalGains: bundle.totalGains,
+                    scenarioCopy: bundle.scenarioCopy
+                }
+            };
+
+            if (existing) {
+                savedScenarios = savedScenarios.map((scenario) => scenario.id === existing.id ? record : scenario);
+            } else {
+                savedScenarios = [record, ...savedScenarios];
+            }
+
+            comparisonScenarioId = record.id;
+            persistSavedScenarios();
+            renderSavedScenarios();
+            renderComparison();
+        }
+
+        function loadScenario(id) {
+            const savedScenario = savedScenarios.find((scenario) => scenario.id === id);
+            if (!savedScenario) {
+                return;
+            }
+
+            applyScenarioConfig(savedScenario.config);
+            document.getElementById('scenarioName').value = savedScenario.name;
+            comparisonScenarioId = id;
+            renderSavedScenarios();
+            update();
+        }
+
+        function deleteScenario(id) {
+            const savedScenario = savedScenarios.find((scenario) => scenario.id === id);
+            if (!savedScenario || !window.confirm(`Supprimer "${savedScenario.name}" ?`)) {
+                return;
+            }
+
+            savedScenarios = savedScenarios.filter((scenario) => scenario.id !== id);
+            if (comparisonScenarioId === id) {
+                comparisonScenarioId = savedScenarios[0]?.id || null;
+            }
+            persistSavedScenarios();
+            renderSavedScenarios();
+            renderComparison();
+        }
+
+        async function shareCurrentScenario() {
+            const url = `${location.origin}${location.pathname}${location.search}#${encodeScenarioState(getCurrentConfig())}`;
+
+            try {
+                await navigator.clipboard.writeText(url);
+                document.getElementById('comparison-badge').innerText = 'Lien copié';
+            } catch {
+                window.prompt('Copie ce lien :', url);
+            }
+        }
+
+        function resetScenario() {
+            document.getElementById('scenarioName').value = DEFAULT_SCENARIO_NAME;
+            applyScenarioConfig({
+                salary: 2500,
+                initial: 1000,
+                monthly: 300,
+                years: 25,
+                calcMode: 'stable',
+                rate: 8,
+                startYear: 1990,
+                reality: {
+                    inflation: false,
+                    tax: false
+                }
+            });
+            update();
+        }
+
+        function bootstrapSavedScenarios() {
+            try {
+                savedScenarios = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+            } catch {
+                savedScenarios = [];
+            }
+
+            if (!Array.isArray(savedScenarios)) {
+                savedScenarios = [];
+            }
+
+            savedScenarios = savedScenarios
+                .map((scenario) => ({
+                    ...scenario,
+                    config: normalizeConfig(scenario.config),
+                    snapshot: scenario.snapshot || (() => {
+                        const bundle = computeScenarioBundle(scenario.config);
+                        return {
+                            finalValue: bundle.scenario.finalValue,
+                            totalInvested: bundle.scenario.totalInvested,
+                            totalGains: bundle.totalGains,
+                            scenarioCopy: bundle.scenarioCopy
+                        };
+                    })()
+                }))
+                .filter((scenario) => scenario.id && scenario.name);
+
+            comparisonScenarioId = savedScenarios[0]?.id || null;
+            renderSavedScenarios();
+        }
+
+        function bootstrapFromUrl() {
+            const hashConfig = decodeScenarioState(location.hash.replace(/^#/, ''));
+            if (!hashConfig) {
+                document.getElementById('scenarioName').value = DEFAULT_SCENARIO_NAME;
+                return;
+            }
+
+            applyScenarioConfig(hashConfig);
+            document.getElementById('scenarioName').value = DEFAULT_SCENARIO_NAME;
+        }
+
         function simulateScenario({ initial, monthly, years, calcMode, rate, startYear, activeReality }) {
             const labels = ['An 0'];
             const displayedTotals = [Math.round(initial)];
@@ -1169,99 +1771,86 @@
 
         // --- MAIN CALCULATION ---
         function update() {
-            const initial = parseInt(document.getElementById('initial').value) || 0;
-            const monthly = parseInt(document.getElementById('monthly').value) || 0;
             const yearsInput = document.getElementById('years');
-            const calcMode = document.getElementById('calcMode').value;
-            const rate = parseFloat(document.getElementById('rate').value);
-            const startYear = parseInt(document.getElementById('startYear').value);
-            const requestedYears = parseInt(yearsInput.value);
-            const { years, maxYears } = clampYearsForMode(requestedYears, calcMode, startYear);
+            const currentConfig = getCurrentConfig();
+            const { years, maxYears } = clampYearsForMode(currentConfig.years, currentConfig.calcMode, currentConfig.startYear);
+            const normalizedConfig = {
+                ...currentConfig,
+                years
+            };
 
             yearsInput.max = maxYears;
-            if (requestedYears !== years) {
+            if (currentConfig.years !== years) {
                 yearsInput.value = years;
             }
 
             // UI toggles
             document.getElementById('txt-years').innerText = years;
-            document.getElementById('txt-rate').innerText = rate + "%";
-            document.getElementById('txt-start-year').innerText = startYear;
-            document.getElementById('stable-settings').classList.toggle('hidden', calcMode === 'sp500');
-            document.getElementById('sp500-settings').classList.toggle('hidden', calcMode === 'stable');
-            document.getElementById('years-note').innerText = getYearsNote(calcMode, years, startYear, maxYears);
-            syncPresetButtons(rate);
+            document.getElementById('txt-rate').innerText = normalizedConfig.rate + "%";
+            document.getElementById('txt-start-year').innerText = normalizedConfig.startYear;
+            document.getElementById('stable-settings').classList.toggle('hidden', normalizedConfig.calcMode === 'sp500');
+            document.getElementById('sp500-settings').classList.toggle('hidden', normalizedConfig.calcMode === 'stable');
+            document.getElementById('years-note').innerText = getYearsNote(normalizedConfig.calcMode, years, normalizedConfig.startYear, maxYears);
+            syncPresetButtons(normalizedConfig.rate);
             syncRealityToggles();
 
-            const mainScenario = simulateScenario({
-                initial,
-                monthly,
-                years,
-                calcMode,
-                rate,
-                startYear,
-                activeReality: reality
-            });
+            const bundle = computeScenarioBundle(normalizedConfig);
+            const mainScenario = bundle.scenario;
+            const totalGains = bundle.totalGains;
+            lastScenarioState = bundle;
+            syncUrlState(bundle.config);
 
             // Results UI
-            const totalGains = mainScenario.finalValue - mainScenario.totalInvested;
-
             document.getElementById('total-amount').innerText = formatMoney(mainScenario.finalValue);
             document.getElementById('total-invested').innerText = formatMoney(mainScenario.totalInvested);
             setMetricValue('total-gains', totalGains, 'text-positive', 'text-warning');
             document.getElementById('summary-sentence').innerText = getSummarySentence({
-                monthly,
+                monthly: bundle.config.monthly,
                 years,
                 totalInvested: mainScenario.totalInvested,
                 finalValue: mainScenario.finalValue,
                 totalGains,
-                calcMode,
-                rate,
-                startYear
+                calcMode: bundle.config.calcMode,
+                rate: bundle.config.rate,
+                startYear: bundle.config.startYear
             });
-            document.getElementById('scenario-copy').innerText = getScenarioCopy({
-                calcMode,
-                years,
-                rate,
-                startYear,
-                activeReality: reality
-            });
-            document.getElementById('assumption-mode').innerText = calcMode === 'sp500'
+            document.getElementById('scenario-copy').innerText = bundle.scenarioCopy;
+            document.getElementById('assumption-mode').innerText = bundle.config.calcMode === 'sp500'
                 ? 'Backtest historique'
                 : 'Projection à taux constant';
-            document.getElementById('assumption-source').innerText = describeSource(calcMode, rate, startYear);
-            document.getElementById('assumption-horizon').innerText = `${formatYearCount(years)} avec ${formatMoney(monthly)} investis par mois`;
-            document.getElementById('assumption-reality').innerText = describeReality(reality);
-            document.getElementById('assumption-note').innerText = reality.inflation || reality.tax
+            document.getElementById('assumption-source').innerText = describeSource(bundle.config.calcMode, bundle.config.rate, bundle.config.startYear);
+            document.getElementById('assumption-horizon').innerText = `${formatYearCount(years)} avec ${formatMoney(bundle.config.monthly)} investis par mois`;
+            document.getElementById('assumption-reality').innerText = describeReality(bundle.config.reality);
+            document.getElementById('assumption-note').innerText = bundle.config.reality.inflation || bundle.config.reality.tax
                 ? "Lecture prudente activée."
                 : "Lecture par défaut : projection brute.";
 
             // Coffee Effect Comparison
             const coffeeScenario = simulateScenario({
-                initial,
-                monthly: monthly + EXTRA_MONTHLY_SAVINGS,
+                initial: bundle.config.initial,
+                monthly: bundle.config.monthly + EXTRA_MONTHLY_SAVINGS,
                 years,
-                calcMode,
-                rate,
-                startYear,
-                activeReality: reality
+                calcMode: bundle.config.calcMode,
+                rate: bundle.config.rate,
+                startYear: bundle.config.startYear,
+                activeReality: bundle.config.reality
             });
             const coffeeDelta = coffeeScenario.finalValue - mainScenario.finalValue;
             document.getElementById('coffee-copy').innerText = `Même hypothèse, même horizon, mais avec ${formatMoney(EXTRA_MONTHLY_SAVINGS)} de plus investis chaque mois.`;
             setMetricValue('coffee-gain', coffeeDelta, 'text-warning', 'text-soft');
 
             // Regret Loss (same model, same end point, started earlier when data exists)
-            const extraYears = calcMode === 'sp500'
-                ? Math.min(REGRET_YEARS, startYear - SP500_MIN_YEAR)
+            const extraYears = bundle.config.calcMode === 'sp500'
+                ? Math.min(REGRET_YEARS, bundle.config.startYear - SP500_MIN_YEAR)
                 : REGRET_YEARS;
             const regretScenario = simulateScenario({
-                initial,
-                monthly,
+                initial: bundle.config.initial,
+                monthly: bundle.config.monthly,
                 years: years + extraYears,
-                calcMode,
-                rate,
-                startYear: calcMode === 'sp500' ? startYear - extraYears : startYear,
-                activeReality: reality
+                calcMode: bundle.config.calcMode,
+                rate: bundle.config.rate,
+                startYear: bundle.config.calcMode === 'sp500' ? bundle.config.startYear - extraYears : bundle.config.startYear,
+                activeReality: bundle.config.reality
             });
             document.getElementById('regret-copy').innerHTML = extraYears > 0
                 ? `Même logique de calcul, même effort mensuel, mais avec <span id="regret-years-label">${extraYears}</span> ${extraYears > 1 ? 'ans' : 'an'} d'avance.`
@@ -1279,10 +1868,15 @@
             chart.data.datasets[0].data = mainScenario.displayedTotals;
             chart.data.datasets[1].data = mainScenario.investedTotals;
             chart.update();
+            renderComparison();
         }
 
         // Init
-        window.onload = update;
+        window.onload = () => {
+            bootstrapSavedScenarios();
+            bootstrapFromUrl();
+            update();
+        };
     </script>
 </body>
 
