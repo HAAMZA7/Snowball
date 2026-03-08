@@ -240,9 +240,9 @@
                         </div>
                         <input type="range" id="rate" min="0" max="15" step="0.5" value="8" oninput="update()">
                         <div class="flex flex-wrap gap-2">
-                            <button onclick="setRate(3)" class="btn-preset">Livret A</button>
-                            <button onclick="setRate(7)" class="btn-preset">MSCI World</button>
-                            <button onclick="setRate(10)" class="btn-preset active">S&P 500 Avg</button>
+                            <button onclick="setRate(3, this)" class="btn-preset" data-rate="3">Livret A</button>
+                            <button onclick="setRate(7, this)" class="btn-preset" data-rate="7">MSCI World</button>
+                            <button onclick="setRate(10, this)" class="btn-preset active" data-rate="10">S&P 500 Avg</button>
                         </div>
                     </div>
 
@@ -255,7 +255,8 @@
                             oninput="update()">
                         <p class="text-[10px] text-slate-500 leading-relaxed italic">
                             Simulation basée sur les rendements réels du S&P 500 (dividendes réinvestis) à partir de
-                            l'année choisie.
+                            l'année choisie. La durée est automatiquement limitée aux données disponibles jusqu'en
+                            2024.
                         </p>
                     </div>
                 </div>
@@ -369,7 +370,8 @@
                 <!-- Time Machine Card -->
                 <div class="glass-card p-6 bg-emerald-500/[0.02] border-emerald-500/20">
                     <h4 class="text-xs font-bold text-emerald-500 uppercase mb-4 tracking-widest">Règle de 10 ans ⏰</h4>
-                    <p class="text-xs text-slate-400 mb-6">Si vous aviez commencé <strong class="text-emerald-400">10
+                    <p class="text-xs text-slate-400 mb-6">Si vous aviez commencé <strong class="text-emerald-400"><span
+                                id="regret-years-label">10</span>
                             ans plus tôt</strong>...</p>
                     <div class="space-y-1">
                         <p class="text-[10px] text-slate-500 font-bold uppercase">Manque à gagner (estimé)</p>
@@ -419,16 +421,32 @@
             return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(amount);
         }
 
+        const DEFAULT_YEARS_MAX = 50;
+        const SP500_MIN_YEAR = 1928;
+        const SP500_MAX_YEAR = 2024;
+        const EXTRA_MONTHLY_SAVINGS = 150;
+        const REGRET_YEARS = 10;
+        const INFLATION_RATE = 0.02;
+        const TAX_RATE = 0.30;
+
         function changeValue(id, delta) {
             const input = document.getElementById(id);
             input.value = Math.max(0, parseInt(input.value) + delta);
             update();
         }
 
-        function setRate(r) {
+        function syncPresetButtons(rate) {
+            document.querySelectorAll('.btn-preset').forEach((button) => {
+                button.classList.toggle('active', Number(button.dataset.rate) === rate);
+            });
+        }
+
+        function setRate(r, button) {
             document.getElementById('rate').value = r;
-            document.querySelectorAll('.btn-preset').forEach(b => b.classList.remove('active'));
-            event?.target.classList.add('active');
+            syncPresetButtons(r);
+            if (button) {
+                button.classList.add('active');
+            }
             update();
         }
 
@@ -444,6 +462,96 @@
             document.getElementById(`dot-${type}`).className = reality[type] ? "w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-[0_0_10px_#6366f1]" : "w-1.5 h-1.5 rounded-full bg-slate-700";
             document.getElementById(`btn-${type}`).style.borderColor = reality[type] ? "rgba(99, 102, 241, 0.4)" : "";
             update();
+        }
+
+        function formatSignedMoney(amount) {
+            if (amount > 0) {
+                return "+" + formatMoney(amount);
+            }
+            if (amount < 0) {
+                return "-" + formatMoney(Math.abs(amount));
+            }
+            return formatMoney(0);
+        }
+
+        function setMetricValue(id, amount, positiveClass, negativeClass) {
+            const element = document.getElementById(id);
+            element.innerText = formatSignedMoney(amount);
+            element.classList.toggle(positiveClass, amount >= 0);
+            element.classList.toggle(negativeClass, amount < 0);
+        }
+
+        function clampYearsForMode(requestedYears, calcMode, startYear) {
+            const maxYears = calcMode === 'sp500'
+                ? Math.max(1, SP500_MAX_YEAR - startYear + 1)
+                : DEFAULT_YEARS_MAX;
+
+            return {
+                maxYears,
+                years: Math.min(requestedYears, maxYears)
+            };
+        }
+
+        function applyRealityAdjustments(total, mise, yearsElapsed, activeReality) {
+            let displayValue = total;
+
+            if (activeReality.tax) {
+                const gains = displayValue - mise;
+                if (gains > 0) {
+                    displayValue -= gains * TAX_RATE;
+                }
+            }
+
+            if (activeReality.inflation) {
+                displayValue /= Math.pow(1 + INFLATION_RATE, yearsElapsed);
+            }
+
+            return displayValue;
+        }
+
+        function getAnnualReturn(calcMode, rate, currentYear) {
+            if (calcMode === 'sp500') {
+                return (SP500_RETURNS[currentYear] || 0) / 100;
+            }
+
+            return rate / 100;
+        }
+
+        function simulateScenario({ initial, monthly, years, calcMode, rate, startYear, activeReality }) {
+            const labels = ['An 0'];
+            const displayedTotals = [Math.round(initial)];
+            const investedTotals = [Math.round(initial)];
+
+            let currentTotal = initial;
+            let currentMise = initial;
+            let currentYear = startYear;
+
+            for (let i = 1; i <= years; i++) {
+                const annualReturn = getAnnualReturn(calcMode, rate, currentYear);
+                const monthlyRate = Math.pow(1 + annualReturn, 1 / 12) - 1;
+
+                for (let month = 0; month < 12; month++) {
+                    currentTotal += monthly;
+                    currentTotal *= (1 + monthlyRate);
+                    currentMise += monthly;
+                }
+
+                if (calcMode === 'sp500') {
+                    currentYear += 1;
+                }
+
+                labels.push(`An ${i}`);
+                displayedTotals.push(Math.round(applyRealityAdjustments(currentTotal, currentMise, i, activeReality)));
+                investedTotals.push(Math.round(currentMise));
+            }
+
+            return {
+                labels,
+                displayedTotals,
+                investedTotals,
+                finalValue: displayedTotals[displayedTotals.length - 1],
+                totalInvested: investedTotals[investedTotals.length - 1]
+            };
         }
 
         // --- CHART INIT ---
@@ -498,10 +606,17 @@
         function update() {
             const initial = parseInt(document.getElementById('initial').value) || 0;
             const monthly = parseInt(document.getElementById('monthly').value) || 0;
-            const years = parseInt(document.getElementById('years').value);
+            const yearsInput = document.getElementById('years');
             const calcMode = document.getElementById('calcMode').value;
             const rate = parseFloat(document.getElementById('rate').value);
             const startYear = parseInt(document.getElementById('startYear').value);
+            const requestedYears = parseInt(yearsInput.value);
+            const { years, maxYears } = clampYearsForMode(requestedYears, calcMode, startYear);
+
+            yearsInput.max = maxYears;
+            if (requestedYears !== years) {
+                yearsInput.value = years;
+            }
 
             // UI toggles
             document.getElementById('txt-years').innerText = years;
@@ -509,99 +624,63 @@
             document.getElementById('txt-start-year').innerText = startYear;
             document.getElementById('stable-settings').classList.toggle('hidden', calcMode === 'sp500');
             document.getElementById('sp500-settings').classList.toggle('hidden', calcMode === 'stable');
+            syncPresetButtons(rate);
 
-            const labels = [];
-            const dataTotal = [];
-            const dataMise = [];
-
-            let currentTotal = initial;
-            let currentMise = initial;
-            let currentYear = startYear;
-
-            labels.push('An 0');
-            dataTotal.push(initial);
-            dataMise.push(initial);
-
-            for (let i = 1; i <= years; i++) {
-                let annualReturn;
-
-                if (calcMode === 'sp500') {
-                    // Loop back to start if we exceed 2024
-                    const yearToUse = currentYear > 2024 ? 1928 + (currentYear - 2025) : currentYear;
-                    annualReturn = (SP500_RETURNS[yearToUse] || 10) / 100;
-                    currentYear++;
-                } else {
-                    annualReturn = rate / 100;
-                }
-
-                // Monthly compounding
-                const monthlyRate = Math.pow(1 + annualReturn, 1 / 12) - 1;
-                for (let m = 0; m < 12; m++) {
-                    currentTotal += monthly;
-                    currentTotal *= (1 + monthlyRate);
-                    currentMise += monthly;
-                }
-
-                let displayValue = currentTotal;
-
-                // reality checks
-                if (reality.tax) {
-                    const gains = displayValue - currentMise;
-                    if (gains > 0) displayValue -= (gains * 0.30);
-                }
-                if (reality.inflation) {
-                    displayValue = displayValue / Math.pow(1 + 0.02, i);
-                }
-
-                labels.push('An ' + i);
-                dataTotal.push(Math.round(displayValue));
-                dataMise.push(Math.round(currentMise));
-            }
+            const mainScenario = simulateScenario({
+                initial,
+                monthly,
+                years,
+                calcMode,
+                rate,
+                startYear,
+                activeReality: reality
+            });
 
             // Results UI
-            const finalValue = dataTotal[dataTotal.length - 1];
-            const totalGains = finalValue - currentMise;
+            const totalGains = mainScenario.finalValue - mainScenario.totalInvested;
 
-            document.getElementById('total-amount').innerText = formatMoney(finalValue);
-            document.getElementById('total-invested').innerText = formatMoney(currentMise);
-            document.getElementById('total-gains').innerText = "+" + formatMoney(Math.max(0, totalGains));
+            document.getElementById('total-amount').innerText = formatMoney(mainScenario.finalValue);
+            document.getElementById('total-invested').innerText = formatMoney(mainScenario.totalInvested);
+            setMetricValue('total-gains', totalGains, 'text-emerald-400', 'text-amber-400');
 
-            // Coffee Effect Comparison (Fixed distance simulation)
-            let coffeeTotal = initial;
-            let coffeeMise = initial;
-            for (let i = 1; i <= years; i++) {
-                const annualReturn = calcMode === 'sp500' ? 0.10 : rate / 100; // Simplified for side comparison
-                const monthlyRate = Math.pow(1 + annualReturn, 1 / 12) - 1;
-                for (let m = 0; m < 12; m++) {
-                    coffeeTotal += (monthly + 150); // +5€/jour
-                    coffeeTotal *= (1 + monthlyRate);
-                    coffeeMise += (monthly + 150);
-                }
-            }
-            document.getElementById('coffee-gain').innerText = "+" + formatMoney(coffeeTotal - finalValue);
+            // Coffee Effect Comparison
+            const coffeeScenario = simulateScenario({
+                initial,
+                monthly: monthly + EXTRA_MONTHLY_SAVINGS,
+                years,
+                calcMode,
+                rate,
+                startYear,
+                activeReality: reality
+            });
+            setMetricValue('coffee-gain', coffeeScenario.finalValue - mainScenario.finalValue, 'text-amber-500', 'text-slate-400');
 
-            // Regret Loss (Simulate starting 10 years earlier with same end age)
-            let regretTotal = initial;
-            for (let i = 1; i <= years + 10; i++) {
-                const annualReturn = 0.08;
-                const monthlyRate = Math.pow(1 + annualReturn, 1 / 12) - 1;
-                for (let m = 0; m < 12; m++) {
-                    regretTotal += monthly;
-                    regretTotal *= (1 + monthlyRate);
-                }
-            }
-            document.getElementById('regret-loss').innerText = "-" + formatMoney(regretTotal - finalValue);
+            // Regret Loss (same model, same end point, started earlier when data exists)
+            const extraYears = calcMode === 'sp500'
+                ? Math.min(REGRET_YEARS, startYear - SP500_MIN_YEAR)
+                : REGRET_YEARS;
+            const regretScenario = simulateScenario({
+                initial,
+                monthly,
+                years: years + extraYears,
+                calcMode,
+                rate,
+                startYear: calcMode === 'sp500' ? startYear - extraYears : startYear,
+                activeReality: reality
+            });
+            document.getElementById('regret-years-label').innerText = extraYears;
+            setMetricValue('regret-loss', mainScenario.finalValue - regretScenario.finalValue, 'text-amber-400', 'text-emerald-400');
 
             // Achievements
-            const ach = [...ACHIEVEMENTS].reverse().find(a => finalValue >= a.threshold) || ACHIEVEMENTS[0];
+            const ach = [...ACHIEVEMENTS].reverse().find(a => mainScenario.finalValue >= a.threshold) || ACHIEVEMENTS[0];
             document.getElementById('achievement-emoji').innerText = ach.emoji;
             document.getElementById('achievement-label').innerText = ach.label;
             document.getElementById('achievement-desc').innerText = ach.desc;
 
             // Chart Update
-            chart.data.labels = labels;
-            chart.data.datasets[0].data = dataTotal;
-            chart.data.datasets[1].data = dataMise;
+            chart.data.labels = mainScenario.labels;
+            chart.data.datasets[0].data = mainScenario.displayedTotals;
+            chart.data.datasets[1].data = mainScenario.investedTotals;
             chart.update();
         }
 
