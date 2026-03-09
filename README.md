@@ -2,7 +2,7 @@
 
 > Visualisez la puissance de l'effet boule de neige sur votre épargne et vos investissements.
 
-🔗 **[Voir la démo](https://snowball-sim.vercel.app/)**
+🔗 **[Voir la démo](https://snowball.djoudi.dev/)**
 
 ## ✨ Fonctionnalités
 
